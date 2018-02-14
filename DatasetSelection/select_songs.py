@@ -48,6 +48,11 @@ for song in range(1, len(track_data)):
     for genre in track_data[song][4]:
         genres[genre] += 1
 
+mg_songs = []
+for song in range(1, len(track_data)):
+	if len(track_data[song][4]) > 1:
+		mg_songs.append(track_data[song])
+
 with open('./genre_counts.csv', 'w') as outfile:
     for genre, count in sorted(genres.items()):
         outfile.write(genre + "," + str(count) + "\n")
