@@ -1,0 +1,88 @@
+\documentclass[10pt]{article}
+\usepackage{graphicx,amssymb, amstext, amsmath, epstopdf, booktabs, verbatim, gensymb, geometry, appendix, natbib, lmodern, hyperref}
+\geometry{letterpaper}
+%\usepackage{garamond}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+
+
+
+\newcommand*\Title{Week 6 Project Update}
+\newcommand*\cpiType{DS 340}
+\newcommand*\Date{February 2018}
+\newcommand*\Author{Kyle Salitrik, Tomoki Takasawa}
+\title{Week 6 Project Update}
+\author{Kyle Salitrik \\ Tomoki Takasawa}
+\date{\today}
+%-----------------------------------------------------------
+
+\usepackage{cpistuff/cpi} % This is what makes your document look like a cpi document.
+
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\end{titlepage}
+
+\linespread{1.15} %Set standard document linespacing
+
+
+\section{Dataset}
+The dataset we obtained for use in this project is the Free Music Archive (FMA) dataset gathered by University of California, Irvine. The dataset contains nearly 1TB of music data consisting of over 100,000 tracks from 161 genres. It was downloaded from this \href{https://github.com/mdeff/fma}{\underline{GitHub Repo}}.
+
+\subsection{Dataset Subselection}
+Utilizing the entire 1TB of music data is both impractical --- as training time would be extraordinarily long --- and impossible for the amount of storage that is available. Because of this, we used a Python script to perform the following operations:
+\begin{itemize}
+	\setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
+    \item Extract the following information for each track:
+    	\begin{itemize}
+    		\item File Name
+            \item Artist Name
+            \item Album Title
+            \item Track Title
+            \item Genre(s)
+    	\end{itemize}
+    \item Using a dictionary, count the number of songs in each genre
+    \item Randomly select 20 songs from each of the 155 genres with over 20 songs and create a list of file names.
+\end{itemize}
+
+For the 3100 songs chosen, a bash script was used to copy these songs into a new directory. 
+
+\subsection{Features Extracted}
+Using Python, the \href{https://github.com/jiaaro/pydub/}{\underline{PyDub}} library was used to chop the song up into 5 second increments. Then the FFT was computed and \href{https://github.com/librosa/librosa}{\underline{LibROSA}} was used to extract the Key and Tempo of each song clip.
+
+\section{Methods to Use}
+\subsection{Neural Net Framework}
+The Neural Net framework that will be employed is:
+\begin{itemize}
+	\setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
+    \item Input Layer for each audio clip consists of:
+    	\begin{itemize}
+    		\item FFT and/or Raw track data
+            \item Key
+            \item Tempo
+    	\end{itemize}
+    \item One or more LSTM layers ending with a Many-to-One LSTM layer
+    \item A single output node that provides the probability a user will like a song 
+\end{itemize}
+
+\newpage
+\subsubsection{LSTM}
+Traditional \& Convolutional Neural Networks work well with recognizing time-independent information such as images. However, our project requires the ability to recognize the flow or pattern over time. Therefore, we decided to move forward with a Recurrent Neural Network, specifically Long Short Term Memory (LSTM).
+
+As opposed to traditional Neural Networks, a LSTM is able to use previous state as an input of the current state, current state as an input of next state, and so on. As a result, it is more suited to recognize and/or analyze music, which consists of series of states.
+
+\subsection{Optional Data Preprocessing Networks}
+Unlike the recognition / analysis of music, analyzing which data components of an image influence the result is not highly time dependent. Therefore, there is no need to use LSTM. Instead, we decided to use Convolutional Neural Network (CNN) to reduce the dimension of the input vector. This CNN determines association between each dimension and output by looking at desired sized frame in waveform.
+
+\end{document}
