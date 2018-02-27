@@ -19,6 +19,13 @@ columns = [0, 5, 2, 37, 27]
 # column [37] = Song Title
 # column [27] = Genre
 
+## Set constants to be used throughout script
+max_songs = 20
+csv_genre_column = 27
+track_data_genre_column = 4
+track_data_id_column = 0
+genre_name_column = 0
+
 with open('./fma_metadata/raw_tracks.csv', 'r') as file:
     tracks = csv.reader(file)
     run = 0
@@ -26,7 +33,7 @@ with open('./fma_metadata/raw_tracks.csv', 'r') as file:
         track_info = []
         for column in columns:
             data = track[column]
-            if column == 27 and run == 1:
+            if column == csv_genre_column and run == 1:
                 data = re.findall("(?<=genre_title': ').*?[^']*", data)
                 # Regex explanation:
                 # ? - Looks for this character or set of chars
@@ -45,14 +52,39 @@ genres = sorted(genres)
 genres = dict.fromkeys(genres, 0)
 
 for song in range(1, len(track_data)):
-    for genre in track_data[song][4]:
+    for genre in track_data[song][track_data_genre_column]:
         genres[genre] += 1
 
-mg_songs = []
-for song in range(1, len(track_data)):
-	if len(track_data[song][4]) > 1:
-		mg_songs.append(track_data[song])
+genre_tuples = []
+for genre, count in genres.items():
+    if count > max_songs:
+        genre_tuples.append((genre, count))
+
+genre_tuples.sort(key=lambda x: x[1])
+
+selected_songs = []
+selected_song_dict = {}
+for genre in genre_tuples:
+    count = 0
+    for song in track_data:
+        for song_genre in song[track_data_genre_column]:
+            if count < max_songs:
+                if song_genre == genre[genre_name_column]:
+                    if song[track_data_id_column] not in selected_song_dict:
+                        selected_song_dict[song[track_data_id_column]] = 1
+                        selected_songs.append([song, song_genre])
+                        count += 1
+                        break
+            else:
+                break
+
+with open('./song_selection.sh', 'w') as outfile:
+    outfile.write("mp3_files=(\n")
+    for song_id in selected_song_dict:
+        outfile.write("    '{0:0>6}.mp3'".format(int(song_id)) + "\n")
+    outfile.write("    )\n")
 
 with open('./genre_counts.csv', 'w') as outfile:
     for genre, count in sorted(genres.items()):
         outfile.write(genre + "," + str(count) + "\n")
+
