@@ -22,8 +22,14 @@ columns = [0, 5, 2, 37, 27]
 ## Set constants to be used throughout script
 max_songs = 20
 csv_genre_column = 27
-track_data_genre_column = 4
+
 track_data_id_column = 0
+track_data_artist_column = 1
+track_data_album_column = 2
+track_data_track_column = 3
+track_data_genre_column = 4
+selected_for_column = 5
+
 genre_name_column = 0
 
 with open('./fma_metadata/raw_tracks.csv', 'r') as file:
@@ -72,7 +78,9 @@ for genre in genre_tuples:
                 if song_genre == genre[genre_name_column]:
                     if song[track_data_id_column] not in selected_song_dict:
                         selected_song_dict[song[track_data_id_column]] = 1
-                        selected_songs.append([song, song_genre])
+                        temp = song
+                        temp.append(song_genre)
+                        selected_songs.append(temp)
                         count += 1
                         break
             else:
@@ -84,7 +92,22 @@ with open('./song_selection.sh', 'w') as outfile:
         outfile.write("    '{0:0>6}.mp3'".format(int(song_id)) + "\n")
     outfile.write("    )\n")
 
+with open('./selected_songs.csv', 'w') as outfile:
+    outfile.write('file,artist,album,track,genres,selected_for\n')
+    for song in selected_songs:
+        song_file_name = "{0:0>6}.mp3".format(int(song[track_data_id_column]))
+        song_artist = re.sub(",", ";", str(song[track_data_artist_column]))
+        song_album = re.sub(",", ";", str(song[track_data_album_column]))
+        song_name = re.sub(",", ";", str(song[track_data_track_column]))
+        song_genres = re.sub(",", ";", str(song[track_data_genre_column]))
+        song_selected_for = re.sub(",", ";", str(song[selected_for_column]))
+        outfile.write(song_file_name + "," +
+                      song_artist + "," +
+                      song_album + "," +
+                      song_name + "," +
+                      song_genres + "," +
+                      song_selected_for + "\n")
+
 with open('./genre_counts.csv', 'w') as outfile:
     for genre, count in sorted(genres.items()):
         outfile.write(genre + "," + str(count) + "\n")
-
