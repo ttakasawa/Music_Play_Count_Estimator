@@ -32,6 +32,11 @@ selected_for_column = 5
 
 genre_name_column = 0
 
+actual_songs = {}
+with open('./actual_songs.txt', 'r') as file:
+    for song_id in file:
+        actual_songs[int(song_id)] = 1
+
 with open('./fma_metadata/raw_tracks.csv', 'r') as file:
     tracks = csv.reader(file)
     run = 0
@@ -50,8 +55,10 @@ with open('./fma_metadata/raw_tracks.csv', 'r') as file:
                 for genre in data:
                     genres.append(genre)
             track_info.append(data)
-        if run == 0: run = 1
-        track_data.append(track_info)
+        if run == 0 or int(track[track_data_id_column]) in actual_songs:
+            track_data.append(track_info)
+        if run == 0:
+            run = 1
 
 genres = set(genres)
 genres = sorted(genres)
@@ -86,7 +93,8 @@ for genre in genre_tuples:
             else:
                 break
 
-with open('./song_selection.sh', 'w') as outfile:
+with open('./songs_to_copy.sh', 'w') as outfile:
+    outfile.write("#!/bin/bash\n")
     outfile.write("mp3_files=(\n")
     for song_id in selected_song_dict:
         outfile.write("    '{0:0>6}.mp3'".format(int(song_id)) + "\n")
