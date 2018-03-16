@@ -1,15 +1,15 @@
 import os
 import csv
 import re
-import FeatureExtraction.audioSegmentation as AS
+import FeatureExtraction.audioSegmentation as Segment
 
 song_title_index = 0
 media_dir = input("Enter the music directory:")
-destination_path = input("Enter the destination directory:")
+data_folder = input("Enter the destination directory:")
 
 # Creates destination outer folder if nonexistent
-if not os.path.exists(destination_path):
-    os.makedirs(destination_path)
+if not os.path.exists(data_folder):
+    os.makedirs(data_folder)
 
 # Read in selected songs into list and remove header
 with open('../DatasetSelection/selected_songs.csv', 'r') as file:
@@ -23,4 +23,11 @@ for song in selected_songs:
     # name = re.findall("[0-9]*[^\.mp3]", song[song_title_index])
     name = re.split("\.", song[song_title_index])[0]
     in_file = os.path.join(media_dir, song[song_title_index])
-    AS.split(in_file, name, destination_path)
+
+    # Create song directories, load audio, and calculate number of segments
+    audio_data, num_segments, song_path, segment_path = Segment.AudioSegmentationPrep(in_file, name, data_folder)
+
+    # Iterate over number of segments
+    for current_segment in range(0, num_segments):
+        audio_segment_data = Segment.GetNextSegment(audio_data, current_segment)
+        Segment.SaveAudio(name, audio_segment_data, current_segment, segment_path)
