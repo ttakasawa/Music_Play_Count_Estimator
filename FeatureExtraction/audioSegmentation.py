@@ -4,9 +4,18 @@ from pydub import AudioSegment
 import os
 
 
-def split(input_file=librosa.util.example_audio_file(), name='sampleOutput', dest=os.getcwd(), step_size=5000):
-    if not os.path.exists(os.path.join(dest, name)):
-        os.makedirs(os.path.join(dest, name))
+def split(input_file=librosa.util.example_audio_file(), name='sampleOutput', dest=os.getcwd(), step_size=5000,
+          move_file=True):
+    dir_path = os.path.join(dest, name)
+    split_path = os.path.join(dir_path, 'split')
+
+    # Create directory for song files if it doesn't exist
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    # Create directory for split audio files if it doesn't exist
+    if not os.path.exists(split_path):
+        os.makedirs(split_path)
 
     music = AudioSegment.from_file(input_file)
     num_segments = int(len(music) / step_size) + 1
@@ -18,8 +27,12 @@ def split(input_file=librosa.util.example_audio_file(), name='sampleOutput', des
         end_point = step_size * (x + 1)
         new_audio = music[start_point:end_point]
         rel_path = name + '_part_' + str(x) + '.mp3'
-        output_path = os.path.join(dest, name, rel_path)
+        output_path = os.path.join(split_path, rel_path)
         new_audio.export(output_path, format="mp3")
 
+    if move_file:
+        move(input_file, name, dir_path)
 
-split('/media/kyle/17E798DB35D99867/blah/000002.mp3', '000002', '/media/kyle/17E798DB35D99867/blah/')
+
+def move(input_file, name, dir_path):
+    os.rename(input_file, os.path.join(dir_path, name + '.mp3'))
