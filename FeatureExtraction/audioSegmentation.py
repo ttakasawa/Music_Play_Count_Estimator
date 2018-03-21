@@ -74,7 +74,7 @@ def SaveAudio(name, audio_segment_data, current_segment, segment_path):
     rel_path = name + '_part_' + str(current_segment) + '.mp3'
     output_path = os.path.join(segment_path, rel_path)
     if audio_segment_data.export(output_path, format="mp3"):
-        return True
+        return output_path
     else:
         return False
 
