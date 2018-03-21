@@ -1,36 +1,41 @@
-from __future__ import print_function
-import librosa
-from pydub import AudioSegment
 import os
-#from audioSegmentation.py import function(a,b)
-from extractBeat import getBeat
-from audioSegmentation import split
+import csv
+import re
+import FeatureExtraction.audioSegmentation as Segment
+import librosa
+import numpy as np
 
-AddressOfInputAudio = ""
-NameOfSong = ""
+media_dir = input("Enter the music directory:")
+data_folder = input("Enter the destination directory:")
 
-#######################    splitting audio    ################################
-# get estimated tempo, beat per minute
-#	-> param: Name of audio w/o .mp3, isDynamic
-#										-> Static: 0, dynamic: 1
-#
-dest = ""
-split(AddressOfInputAudio, NameOfSong, dest)
-#
-###############################################################################
+# Creates destination outer folder if nonexistent
+if not os.path.exists(data_folder):
+    os.makedirs(data_folder)
 
+# Read in selected songs into list and remove header
 
-###########################    getTempo    ####################################
-# get estimated tempo, beat per minute
-#	-> param: Name of audio w/o .mp3, isDynamic
-#										-> Static: 0, dynamic: 1
-#audioName = 'a2'
-#print(getBeat(audioName, 1))
-#
-###############################################################################
+# Create split audio files
+for song in os.listdir(media_dir):
+    # Either regex will work, but split is possibly faster
+    # name = re.findall("[0-9]*[^\.mp3]", song[song_title_index])
+    name = re.split("\.", song)[0]
+    in_file = os.path.join(media_dir, song)
 
+    # Create song directories, load audio, and calculate number of segments
+    audio_data, num_segments, song_path, segment_path = Segment.AudioSegmentationPrep(in_file, name, data_folder)
 
+    # Iterate over number of segments
+    for current_segment in range(0, num_segments):
+        audio_segment_data = Segment.GetNextSegment(audio_data, current_segment)
+        segment_file = Segment.SaveAudio(name, audio_segment_data, current_segment, segment_path)
+        librosa_data, sample_rate = librosa.load(segment_file, sr=44100)
+        # size: 221231
 
-
-
-
+        np_save_files = re.split("\.", segment_file)[0]
+        fft = librosa.stft(librosa_data, n_fft=4410)
+        # n_fft = 4410  -> shape: 2206 x 201 size: 443406
+        # n_fft = 44100 -> shape: 22051 x 21 size: 463071
+        tempo = librosa.beat.tempo(librosa_data, sr=sample_rate)
+        np.save(np_save_files + '_fft', fft)
+        np.save(np_save_files + '_tempo', tempo)
+     Segment.MoveOriginalFile(in_file, name, song_path)
