@@ -1,5 +1,4 @@
 import os
-import csv
 import re
 import FeatureExtraction.audioSegmentation as Segment
 import librosa
@@ -38,4 +37,4 @@ for song in os.listdir(media_dir):
         tempo = librosa.beat.tempo(librosa_data, sr=sample_rate)
         np.save(np_save_files + '_fft', fft)
         np.save(np_save_files + '_tempo', tempo)
-     Segment.MoveOriginalFile(in_file, name, song_path)
+    Segment.MoveOriginalFile(in_file, name, song_path)
