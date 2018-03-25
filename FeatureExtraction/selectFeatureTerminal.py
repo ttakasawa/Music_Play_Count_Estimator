@@ -17,6 +17,7 @@ if not os.path.exists(data_folder):
 for song in os.listdir(media_dir):
     # Either regex will work, but split is possibly faster
     # name = re.findall("[0-9]*[^\.mp3]", song[song_title_index])
+    print(song)
     name = re.split("\.", song)[0]
     in_file = os.path.join(media_dir, song)
 
