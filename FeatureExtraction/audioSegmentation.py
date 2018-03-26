@@ -23,20 +23,20 @@ def AudioSegmentationPrep(input_file, name, destination, step_size=5000):
 
     song_directory = os.path.join(destination, name)
     segment_path = os.path.join(song_directory, 'split')
+    fft_path = os.path.join(song_directory, 'fft')
+    tempo_path = os.path.join(song_directory, 'tempo')
 
     # Create directory for song files if it doesn't exist
-    if not os.path.exists(song_directory):
-        os.makedirs(song_directory)
+    for path in (song_directory, segment_path, fft_path, tempo_path):
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-    # Create directory for split audio files if it doesn't exist
-    if not os.path.exists(segment_path):
-        os.makedirs(segment_path)
 
     # Load audio and calculate number of segments to create
     audio_data = AudioSegment.from_file(input_file)
     num_segments = int(len(audio_data) / step_size) + 1
 
-    return audio_data, num_segments, song_directory, segment_path
+    return audio_data, num_segments, song_directory, segment_path, fft_path, tempo_path
 
 
 def GetNextSegment(audio_data, current_segment, step_size=5000):
