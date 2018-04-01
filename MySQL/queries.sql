@@ -47,10 +47,25 @@ ORDER BY plays DESC;
 ###############################################################
 SELECT DISTINCT song_id
 FROM TopUserPlayRecords;
+# 101823 songs
 
 SELECT DISTINCT user_id
 FROM TopUserPlayRecords;
 
-SELECT DISTINCT *
-FROM UniqueTracks
-WHERE song_id = 'SOJFIGW12A8C13E984';
+SELECT UniqueTracks.artist_name, UniqueTracks.song_title
+FROM UniqueTracks,
+  (SELECT DISTINCT TopUserPlayRecords.song_id
+   FROM TopUserPlayRecords) unique_songs
+WHERE UniqueTracks.song_id = unique_songs.song_id;
+
+
+
+SELECT UniqueTracks.artist_name, UniqueTracks.song_title
+FROM UniqueTracks,
+  (SELECT DISTINCT TopUserPlayRecords.song_id
+   FROM TopUserPlayRecords) unique_songs
+WHERE UniqueTracks.song_id = unique_songs.song_id
+INTO OUTFILE '/home/kyle/git/UnsupervisedDeepMusicRecommendation/MySQL/Results/artist_song_pairs.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';

@@ -22,3 +22,9 @@ done
 for file in ./insert_statements/*; do
     sed -i '$ s/.$/;/' $file
 done
+
+split -n l/10 *.sql
+mv *.sql ..
+for file in *; do
+    mv ${file} ${file}.sql
+done
