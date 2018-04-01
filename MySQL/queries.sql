@@ -50,3 +50,7 @@ FROM TopUserPlayRecords;
 
 SELECT DISTINCT user_id
 FROM TopUserPlayRecords;
+
+SELECT DISTINCT *
+FROM UniqueTracks
+WHERE song_id = 'SOJFIGW12A8C13E984';
