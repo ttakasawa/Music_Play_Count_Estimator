@@ -19,6 +19,8 @@ WHERE plays < 201
 GROUP BY user_id
 ORDER BY total_user_playcount DESC;
 
+#### IMPORTED NEW TABLE AS RESULT OF ABOVE QUERY
+
 ## Check Number of Users given Play Threshold
 SELECT UserPlaycounts.user_id, UserPlaycounts.total_user_playcount
 FROM UserPlaycounts
@@ -37,10 +39,13 @@ FROM PlayRecords
 WHERE plays < 201
 ORDER BY plays DESC;
 
+#### IMPORTED NEW TABLE AS RESULT OF ABOVE QUERY
+
+
 ###############################################################
 ## USER PLAY RECORD AGGREGATES
 ###############################################################
-SELECT DISTINCTd song_id
+SELECT DISTINCT song_id
 FROM TopUserPlayRecords;
 
 SELECT DISTINCT user_id
