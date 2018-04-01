@@ -31,7 +31,6 @@ def AudioSegmentationPrep(input_file, name, destination, step_size=5000):
         if not os.path.exists(path):
             os.makedirs(path)
 
-
     # Load audio and calculate number of segments to create
     audio_data = AudioSegment.from_file(input_file)
     num_segments = int(len(audio_data) / step_size) + 1
