@@ -22,7 +22,8 @@ for song in os.listdir(media_dir):
     in_file = os.path.join(media_dir, song)
 
     # Create song directories, load audio, and calculate number of segments
-    audio_data, num_segments, song_path, segment_path = Segment.AudioSegmentationPrep(in_file, name, data_folder)
+    audio_data, num_segments, song_path, segment_path, fft_path, tempo_path = \
+        Segment.AudioSegmentationPrep(in_file, name, data_folder)
 
     # Iterate over number of segments
     for current_segment in range(0, num_segments):
@@ -31,11 +32,13 @@ for song in os.listdir(media_dir):
         librosa_data, sample_rate = librosa.load(segment_file, sr=44100)
         # size: 221231
 
-        np_save_files = re.split("\.", segment_file)[0]
+        fft_save_file = os.path.join(fft_path, (name + '_part_' + str(current_segment) + '_fft'))
+        tempo_save_file = os.path.join(tempo_path, (name + '_part_' + str(current_segment) + '_tempo'))
+
         fft = librosa.stft(librosa_data, n_fft=4410)
         # n_fft = 4410  -> shape: 2206 x 201 size: 443406
         # n_fft = 44100 -> shape: 22051 x 21 size: 463071
         tempo = librosa.beat.tempo(librosa_data, sr=sample_rate)
-        np.save(np_save_files + '_fft', fft)
-        np.save(np_save_files + '_tempo', tempo)
+        np.save(fft_save_file, fft)
+        np.save(tempo_save_file, tempo)
     Segment.MoveOriginalFile(in_file, name, song_path)
