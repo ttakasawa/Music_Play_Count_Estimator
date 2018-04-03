@@ -92,7 +92,8 @@ for genre in genre_tuples:
             else:
                 break
 
-with open('./songs_to_copy.sh', 'w') as outfile:
+
+with open('/songs_to_copy.sh', 'w') as outfile:
     outfile.write("#!/bin/bash\n")
     outfile.write("mp3_files=(\n")
     for song_id in selected_song_dict:
