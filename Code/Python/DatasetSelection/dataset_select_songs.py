@@ -1,5 +1,6 @@
 import csv
 import re
+from Python.global_imports import *
 
 
 def clear():
@@ -32,11 +33,11 @@ selected_for_column = 5
 genre_name_column = 0
 
 actual_songs = {}
-with open('./actual_songs.txt', 'r') as file:
+with open(os.path.join(results_directory, 'actual_songs.txt'), 'r') as file:
     for song_id in file:
         actual_songs[int(song_id)] = 1
 
-with open('./fma_metadata/raw_tracks.csv', 'r') as file:
+with open(os.path.join(data_directory, 'fma_metadata/raw_tracks.csv'), 'r') as file:
     tracks = csv.reader(file)
     run = 0
     for track in tracks:
@@ -92,15 +93,14 @@ for genre in genre_tuples:
             else:
                 break
 
-
-with open('/songs_to_copy.sh', 'w') as outfile:
+with open(os.path.join(bash_code, 'songs_to_copy.sh'), 'w') as outfile:
     outfile.write("#!/bin/bash\n")
     outfile.write("mp3_files=(\n")
     for song_id in selected_song_dict:
         outfile.write("    '{0:0>6}.mp3'".format(int(song_id)) + "\n")
     outfile.write("    )\n")
 
-with open('./selected_songs.csv', 'w') as outfile:
+with open(os.path.join(dataset_results, 'selected_songs.csv'), 'w') as outfile:
     outfile.write('file,artist,album,track,genres,selected_for\n')
     for song in selected_songs:
         song_file_name = "{0:0>6}.mp3".format(int(song[track_data_id_column]))
@@ -116,6 +116,6 @@ with open('./selected_songs.csv', 'w') as outfile:
                       song_genres + "," +
                       song_selected_for + "\n")
 
-with open('./genre_counts.csv', 'w') as outfile:
+with open(os.path.join(dataset_results, 'genre_counts.csv'), 'w') as outfile:
     for genre, count in sorted(genres.items()):
         outfile.write(genre + "," + str(count) + "\n")
