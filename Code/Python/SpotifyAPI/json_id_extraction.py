@@ -8,10 +8,24 @@ def LoadSongJSON(path):
     return song_json
 
 
-def ExtractSpotifyID(song_json):
-    foreign_ids = song_json.get('response').get('songs')[0].get('artist_foreign_ids')
-    for id_json in foreign_ids:
-        if id_json.get('catalog') == 'spotify':
-            print(re.split(':', id_json.get('foreign_id'))[2])
+def ExtractSongInfo(song_json):
+    spotify_id = "!ERR: No Spotify Track ID Found"
+    artist_name = "!ERR: No artist name found"
+    song_name = "!ERR: No song name found"
+    if 'response' in song_json.keys():
+        json_data = song_json.get('response')
+        if 'songs' in json_data.keys():
+            json_data = json_data.get('songs')
+            if len(json_data) > 0:
+                json_data = json_data[0]
+                if 'artist_name' in json_data.keys():
+                    artist_name = json_data.get('artist_name')
+                if 'title' in json_data.keys():
+                    song_name = json_data.get('title')
+                if 'artist_foreign_ids' in json_data.keys():
+                    json_data = json_data.get('artist_foreign_ids')
+                    for id_json in json_data:
+                        if id_json.get('catalog') == 'spotify':
+                            spotify_id = (re.split(':', id_json.get('foreign_id'))[2])
 
-# test = os.popen("find . -maxdepth 1 -name Downloads").read().strip()
+    return spotify_id, artist_name, song_name
