@@ -2,6 +2,7 @@ import csv
 import json
 from Python.global_imports import *
 from Python.SpotifyAPI.json_id_extraction import *
+from datetime import datetime
 
 # Save original directory
 start_dir = os.getcwd()
@@ -24,7 +25,7 @@ with open(output_file, 'w') as outfile:
 curr_id = 1
 for song_id in song_ids:
     if (curr_id % 100 - 1) == 0:
-        print(str(curr_id) + "/" + str(num_ids))
+        print(datetime.now().strftime("%H:%M:%S") + ": " + str(curr_id) + "/" + str(num_ids))
     file = os.path.abspath(os.popen("find ./ -name " + song_id + ".json").read().strip())
     song_json = LoadSongJSON(file)
     spotify_id, artist_name, song_name = ExtractSongInfo(song_json)
