@@ -30,5 +30,11 @@ for song_id in song_ids:
     song_json = LoadSongJSON(file)
     spotify_id, artist_name, song_name = ExtractSongInfo(song_json)
     with open(output_file, 'a') as outfile:
-        outfile.write(artist_name + "," + song_name + "," + spotify_id + "," + song_id + "\n")
+        delim = ''
+        str_delim = '|'
+        outfile.write(
+            str_delim + artist_name + str_delim + delim +
+            str_delim + song_name + str_delim + delim +
+            str_delim + spotify_id + str_delim + delim +
+            str_delim + song_id + str_delim + "\n")
     curr_id += 1

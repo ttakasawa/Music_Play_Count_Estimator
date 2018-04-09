@@ -22,8 +22,8 @@ def ExtractSongInfo(song_json):
                     artist_name = json_data.get('artist_name')
                 if 'title' in json_data.keys():
                     song_name = json_data.get('title')
-                if 'artist_foreign_ids' in json_data.keys():
-                    json_data = json_data.get('artist_foreign_ids')
+                if 'tracks' in json_data.keys():
+                    json_data = json_data.get('tracks')
                     for id_json in json_data:
                         if id_json.get('catalog') == 'spotify':
                             spotify_id = (re.split(':', id_json.get('foreign_id'))[2])
