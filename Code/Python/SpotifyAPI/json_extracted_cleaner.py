@@ -46,6 +46,12 @@ cleaned_spotify_data = clean_spotify_data(raw_spotify_data, header)
 sql_songs = csv_open(os.path.join(sql_results, 'final_song_selection.csv'))
 sql_songs = [song_id[0] for song_id in sql_songs]
 join_spotify_sql = join_spotify_data(cleaned_spotify_data, sql_songs, 3)
+
+sql_songs_no_min = csv_open(os.path.join(sql_results, 'final_song_selection_no_min.csv'))
+sql_songs_no_min = [song_id[0] for song_id in sql_songs_no_min]
+join_spotify_sql_no_min = join_spotify_data(cleaned_spotify_data, sql_songs_no_min, 3)
+
 write_csv_data(cleaned_spotify_data, os.path.join(json_extraction_results, 'spotify_songs_sorted_no_errs.csv'),
                delim='|')
 write_csv_data(join_spotify_sql, os.path.join(json_extraction_results, 'join_spotify_sql.csv'), delim='|')
+write_csv_data(join_spotify_sql_no_min, os.path.join(json_extraction_results, 'join_spotify_sql_no_min.csv'), delim='|')
