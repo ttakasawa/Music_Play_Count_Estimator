@@ -1,7 +1,8 @@
+import csv
 import os
 
 # import using:
-# from Python.global_imports import *
+# from Code.Python.global_imports import *
 
 # Results Directories
 results_directory = os.path.abspath('../../../Results/')
@@ -32,6 +33,18 @@ def EnsureDirectoriesExist():
         for dir in dirlist:
             if not os.path.exists(dir):
                 os.makedirs(dir)
+
+
+def csv_open(path, delim=','):
+    with open(path, 'r') as file:
+        return list(csv.reader(file, delimiter=delim))
+
+
+def write_csv_data(data, file_path, delim=","):
+    with open(file_path, 'w') as outfile:
+        writer = csv.writer(outfile, delimiter=delim)
+        for item in data:
+            writer.writerow(item)
 
 
 EnsureDirectoriesExist()

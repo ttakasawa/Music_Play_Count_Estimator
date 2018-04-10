@@ -1,17 +1,15 @@
-from Python.global_imports import *
-import re
 import json
-import csv
 import math
+import re
+from Code.Python.global_imports import *
 
-with open(os.path.join(json_extraction_results, 'errors_removed.csv')) as file:
-    songs = list(csv.reader(file))
+songs = csv_open(os.path.join(json_extraction_results, 'errors_removed.csv'), delim='|')
 songs.pop(0)
 
 with open('key.txt', 'r') as f:
     key = f.read()
 
-## Create Playlists to be Used
+# Create Playlists to be Used
 songs_per_playlist = 9000
 created_playlists = [['test', '1'], ['test', '2'], ['test', '3'], ['test', '4'], ['test', '5'], ['test', '6'],
                      ['test', '7'], ['test', '8'], ['test', '9']]

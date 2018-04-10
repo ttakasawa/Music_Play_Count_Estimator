@@ -1,7 +1,6 @@
-import csv
-from Python.global_imports import *
-from Python.SpotifyAPI.json_id_extraction import *
 from datetime import datetime
+from Code.Python.SpotifyAPI.json_id_extraction import *
+from Code.Python.global_imports import *
 
 # Set delimiter and text qualifiers for CSV
 delim = '|'
@@ -12,8 +11,7 @@ start_dir = os.getcwd()
 output_file = os.path.join(json_extraction_results, "spotify_song_info.csv")
 
 # Open list of song IDs
-with open(os.path.join(sql_results, 'song_ids.csv')) as file:
-    song_ids = list(csv.reader(file))
+song_ids = csv_open(os.path.join(sql_results, 'song_ids.csv'))
 
 # Extract song ID strings because the CSV populates a list of lists with a single item in each sublist
 song_ids = [song_id[0] for song_id in song_ids]
