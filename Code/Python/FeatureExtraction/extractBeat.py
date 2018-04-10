@@ -1,6 +1,6 @@
 from __future__ import print_function
-import librosa
 import os
+import librosa
 
 
 # from visualization import tempoVSautoCorrelation, dTempoOnTempogram

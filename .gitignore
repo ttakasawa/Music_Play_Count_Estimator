@@ -1,9 +1,10 @@
 ################################################################################################################
 ##  Start REPO Gitignore
 ################################################################################################################
-/DatasetSelection/fma_metadata
-/MySQL/Data/
-
+Data/fma_metadata
+Data/MySQL/
+Data/millionsongdataset_echonest
+Code/Python/SpotifyAPI/key\.txt
 
 ################################################################################################################
 ##  End REPO Gitignore
@@ -206,7 +207,7 @@ CTestTestfile.cmake
 *.elf
 
 # Linker output
-*.ilk
+*.il
 *.exp
 
 # Precompiled Headers

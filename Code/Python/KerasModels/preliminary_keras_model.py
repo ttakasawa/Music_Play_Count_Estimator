@@ -1,9 +1,8 @@
 import os
-import numpy as np
 import librosa
-import keras
-from keras.models import Sequential
+import numpy as np
 from keras.layers import LSTM, Dense
+from keras.models import Sequential
 
 time_steps = 222336
 data_dim = 1

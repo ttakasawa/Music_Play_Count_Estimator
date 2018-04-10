@@ -1,0 +1,81 @@
+import json
+import math
+import re
+from Code.Python.global_imports import *
+
+
+def create_playlists(songs, songs_per_playlist, key):
+    """
+    Creates a set of playlists based on the number of songs that need to be added to lists
+    :param songs: list of songs to be added
+    :param songs_per_playlist: maximum number of songs allowed in each playlist
+    :param key: api key loaded from text file in directory
+    :return: list of created playlists
+    """
+    created_playlists = []
+    add_playlist_curl_string = 'curl -X "POST" "https://api.spotify.com/v1/users/ty6ox21rodfvlrg1poba0i6fz/playlists" ' \
+                               '--data "{' \
+                               '\\"name\\":\\"PROJECT_PL_1\\",' \
+                               '\\"description\\":\\"test\\",' \
+                               '\\"public\\":false}" ' \
+                               '-H "Accept: application/json" -H "Content-Type: application/json" ' \
+                               '-H "Authorization: Bearer '
+
+    add_playlist_curl_string = add_playlist_curl_string + key + '"'
+
+    max_playlists = int(math.ceil(len(songs) / songs_per_playlist) + 1)
+
+    for i in range(1, max_playlists):
+        curl_string = re.sub('PROJECT_PL_[0-9]*', 'PROJECT_PL_' + str(i), add_playlist_curl_string)
+        playlist_json = os.popen(curl_string).read()
+        playlist_json = json.loads(playlist_json)
+        created_playlists.append([playlist_json.get('name'), playlist_json.get('id')])
+    return created_playlists
+
+
+def add_songs_to_playlist(playlists, songs, songs_per_playlist, key):
+    """
+    Adds the maximum allowed number of songs to a playlist given a list of songs.
+    If all songs are added or the maximum number of songs allowed is reached.
+    :param playlists: list of playlist IDs to add the songs to
+    :param songs: list of songs to add
+    :param songs_per_playlist: maximum number of songs allowed per playlist
+    :param key: api key loaded from text file in directory
+    :return: nothing
+    """
+    add_song_string_begin = 'curl -X "POST" "https://api.spotify.com/v1/users/ty6ox21rodfvlrg1poba0i6fz/playlists/'
+    add_song_string_middle = '/tracks?position=0&uris='
+    add_song_string_end = '" -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer '
+
+    offset = 0
+
+    for playlist in playlists:
+        add_song_string = add_song_string_begin + playlist[1] + add_song_string_middle
+        for i in range(offset, offset + songs_per_playlist, 10):
+            if i >= len(songs):
+                break
+            else:
+                song_id_string = ""
+                for j in range(i, i + 11):
+                    if j >= len(songs):
+                        break
+                    else:
+                        song_id_string = song_id_string + 'spotify%3Atrack%3A' + songs[j][2] + '%2C'
+                song_id_string = song_id_string[:-3]
+                add_song_string_with_ids = add_song_string + song_id_string + add_song_string_end + key + '"'
+                api_return = os.popen(add_song_string_with_ids).read()
+                print(api_return)
+        offset += songs_per_playlist
+
+
+def main():
+    songs = csv_open(os.path.join(json_extraction_results, 'join_spotify_sql.csv'), delim='|')
+    songs.pop(0)
+    max_songs_per_list = 9000
+    with open('key.txt', 'r') as f:
+        key = f.read()
+    playlists = create_playlists(songs, max_songs_per_list, key)
+    add_songs_to_playlist(playlists, songs, max_songs_per_list, key)
+
+
+main()

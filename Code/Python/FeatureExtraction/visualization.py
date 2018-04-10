@@ -1,7 +1,7 @@
 # Modifications of sample code appeares in https://librosa.github.io
 
-import matplotlib.pyplot as plt
 import librosa
+import matplotlib.pyplot as plt
 
 
 def tempoVSautoCorrelation(tempo, hop_length):

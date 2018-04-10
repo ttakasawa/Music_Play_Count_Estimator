@@ -1,8 +1,8 @@
 import os
 import re
-import FeatureExtraction.audioSegmentation as Segment
 import librosa
 import numpy as np
+import Code.Python.FeatureExtraction.audioSegmentation as Segment
 
 media_dir = input("Enter the music directory:")
 data_folder = input("Enter the destination directory:")

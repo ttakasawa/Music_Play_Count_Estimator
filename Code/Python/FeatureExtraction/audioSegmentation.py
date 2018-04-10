@@ -1,6 +1,5 @@
-from __future__ import print_function
-from pydub import AudioSegment
 import os
+from pydub import AudioSegment
 
 
 def AudioSegmentationPrep(input_file, name, destination, step_size=5000):
