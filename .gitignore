@@ -1,9 +1,10 @@
 ################################################################################################################
 ##  Start REPO Gitignore
 ################################################################################################################
-/Data/fma_metadata
-/Data/MySQL/
-/Data/millionsongdataset_echonest
+Data/fma_metadata
+Data/MySQL/
+Data/millionsongdataset_echonest
+Code/Python/SpotifyAPI/key\.txt
 
 ################################################################################################################
 ##  End REPO Gitignore
