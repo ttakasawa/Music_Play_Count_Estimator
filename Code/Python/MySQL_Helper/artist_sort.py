@@ -1,7 +1,6 @@
 import csv
 from Python.global_imports import *
 
-
 with open(os.path.join(sql_results, 'artist_song_pairs.csv'), 'r') as file:
     reader = csv.reader(file)
     song_data = list(reader)
