@@ -5,6 +5,7 @@ Data/fma_metadata
 Data/MySQL/
 Data/millionsongdataset_echonest
 Code/Python/SpotifyAPI/key\.txt
+Code/Python/SpotifyAPI/user_id\.txt
 
 ################################################################################################################
 ##  End REPO Gitignore
