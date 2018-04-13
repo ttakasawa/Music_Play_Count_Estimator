@@ -72,7 +72,7 @@ def add_songs_to_playlist(playlists, songs, songs_per_playlist, user_id, key):
 
 
 def main():
-    songs = csv_open(os.path.join(json_extraction_results, 'join_spotify_sql_no_min.csv'), delim='|')
+    songs = csv_open(os.path.join(json_extraction_results, 'join_spotify_sql.csv'), delim='|')
     songs.pop(0)
     max_songs_per_list = 9000
     with open('key.txt', 'r') as f:
