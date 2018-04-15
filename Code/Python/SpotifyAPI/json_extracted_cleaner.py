@@ -5,14 +5,14 @@ spotify_id_location = 2
 spotify_id_err = "!ERR: No Spotify Track ID Found"
 
 
-def load_spotify_song_info():
+def load_spotify_song_info(in_file):
     """
     Loads extracted spotify song IDs, pops off the header and returns the data
     :return:
         songs_raw - raw song data extracted with json extractor
         header - header of CSV file
     """
-    songs_raw = csv_open(os.path.join(json_extraction_results, 'spotify_song_info.csv'), delim='|')
+    songs_raw = csv_open(os.path.join(json_extraction_results, in_file), delim='|')
     header = songs_raw.pop(0)
     np_songs = np.array(songs_raw)
 
@@ -63,9 +63,9 @@ def join_spotify_data(spotify_song_data, song_ids, song_id_column):
 
 if __name__ == "__main__":
     # Clean raw CSV from json extraction script
-    raw_spotify_data, header = load_spotify_song_info()
+    raw_spotify_data, header = load_spotify_song_info('spotify_song_info_min_2_users.csv')
     cleaned_spotify_data = clean_spotify_data(raw_spotify_data, header)
-    write_csv_data(cleaned_spotify_data, os.path.join(json_extraction_results, 'spotify_songs_sorted_no_errs.csv'),
+    write_csv_data(cleaned_spotify_data, os.path.join(json_extraction_results, 'cleaned_spotify_songs_min_2_users.csv'),
                    delim='|')
 
     # Join on songs selected from SQL

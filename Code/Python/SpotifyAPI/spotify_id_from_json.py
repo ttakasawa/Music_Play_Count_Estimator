@@ -3,9 +3,10 @@ from Code.Python.SpotifyAPI.json_id_extraction import *
 from Code.Python.global_imports import *
 
 
-def json_extraction_setup():
+def json_extraction_setup(sql_file):
     """
     This setup returns all the information needed to run the json ID extraction
+    :param sql_file - name of SQL file to read Echonest IDs from
     :return:
         delimiter - delimiter character for CSV file
         str_qualifier - text qualifier for CSV file
@@ -23,7 +24,7 @@ def json_extraction_setup():
     output_file = os.path.join(json_extraction_results, "spotify_song_info.csv")
 
     # Open list of song IDs
-    song_id_list = csv_open(os.path.join(sql_results, 'final_song_selection.csv'))
+    song_id_list = csv_open(os.path.join(sql_results, sql_file))
 
     # Extract song ID strings because the CSV populates a list of lists with a single item in each sublist
     song_id_list = [song_id[0] for song_id in song_id_list]
@@ -71,5 +72,5 @@ def run_spotify_id_extraction(delimiter, str_qualifier, output_file, song_id_lis
 
 if __name__ == '__main__':
     # Run spotify ID extraction
-    delim, str_qual, curr_dir, outfile, song_ids, num_ids = json_extraction_setup()
+    delim, str_qual, curr_dir, outfile, song_ids, num_ids = json_extraction_setup('final_songs_with_min_2_users.csv')
     run_spotify_id_extraction(delim, str_qual, outfile, song_ids, num_ids)
