@@ -71,8 +71,8 @@ def add_songs_to_playlist(playlists, songs, songs_per_playlist, user_id, key):
         offset += songs_per_playlist
 
 
-def main():
-    songs = csv_open(os.path.join(json_extraction_results, 'join_spotify_sql.csv'), delim='|')
+if __name__ == '__main__':
+    songs = csv_open(os.path.join(json_extraction_results, 'spotify_songs_sorted_no_errs.csv'), delim='|')
     songs.pop(0)
     max_songs_per_list = 9000
     with open('key.txt', 'r') as f:
@@ -81,6 +81,3 @@ def main():
         user_id = f.read()
     playlists = create_playlists(songs, max_songs_per_list, user_id, key)
     add_songs_to_playlist(playlists, songs, max_songs_per_list, user_id, key)
-
-
-main()

@@ -6,6 +6,12 @@ spotify_id_err = "!ERR: No Spotify Track ID Found"
 
 
 def load_spotify_song_info():
+    """
+    Loads extracted spotify song IDs, pops off the header and returns the data
+    :return:
+        songs_raw - raw song data extracted with json extractor
+        header - header of CSV file
+    """
     songs_raw = csv_open(os.path.join(json_extraction_results, 'spotify_song_info.csv'), delim='|')
     header = songs_raw.pop(0)
     np_songs = np.array(songs_raw)
@@ -20,6 +26,14 @@ def load_spotify_song_info():
 
 
 def clean_spotify_data(song_data, header):
+    """
+    Removes all songs where spotify IDs couldn't be found from the list and returns the clean list with the header
+    attached
+
+    :param song_data: raw song data extracted with json extractor
+    :param header: header of CSV file
+    :return: list of cleaned song information
+    """
     # Initialize list for song data with removed errors
     songs_cleaned = []
     for song in song_data:
@@ -31,6 +45,13 @@ def clean_spotify_data(song_data, header):
 
 
 def join_spotify_data(spotify_song_data, song_ids, song_id_column):
+    """
+    Performs a SQL-like join on the data assuming a larger set of JSON information was extracted
+    :param spotify_song_data: list of cleaned song information
+    :param song_ids: list of Echonest song IDs from SQL queries
+    :param song_id_column: column where Echonest song IDs are located in CSV
+    :return: Joined list
+    """
     join_result = []
     for song_id in song_ids:
         for song in spotify_song_data:
@@ -40,18 +61,15 @@ def join_spotify_data(spotify_song_data, song_ids, song_id_column):
     return join_result
 
 
-# Run Functions
-raw_spotify_data, header = load_spotify_song_info()
-cleaned_spotify_data = clean_spotify_data(raw_spotify_data, header)
-sql_songs = csv_open(os.path.join(sql_results, 'final_song_selection.csv'))
-sql_songs = [song_id[0] for song_id in sql_songs]
-join_spotify_sql = join_spotify_data(cleaned_spotify_data, sql_songs, 3)
+if __name__ == "__main__":
+    # Clean raw CSV from json extraction script
+    raw_spotify_data, header = load_spotify_song_info()
+    cleaned_spotify_data = clean_spotify_data(raw_spotify_data, header)
+    write_csv_data(cleaned_spotify_data, os.path.join(json_extraction_results, 'spotify_songs_sorted_no_errs.csv'),
+                   delim='|')
 
-sql_songs_no_min = csv_open(os.path.join(sql_results, 'final_song_selection_no_min.csv'))
-sql_songs_no_min = [song_id[0] for song_id in sql_songs_no_min]
-join_spotify_sql_no_min = join_spotify_data(cleaned_spotify_data, sql_songs_no_min, 3)
-
-write_csv_data(cleaned_spotify_data, os.path.join(json_extraction_results, 'spotify_songs_sorted_no_errs.csv'),
-               delim='|')
-write_csv_data(join_spotify_sql, os.path.join(json_extraction_results, 'join_spotify_sql.csv'), delim='|')
-write_csv_data(join_spotify_sql_no_min, os.path.join(json_extraction_results, 'join_spotify_sql_no_min.csv'), delim='|')
+    # Join on songs selected from SQL
+    # sql_songs = csv_open(os.path.join(sql_results, 'final_song_selection.csv'))
+    # sql_songs = [song_id[0] for song_id in sql_songs]
+    # join_spotify_sql = join_spotify_data(cleaned_spotify_data, sql_songs, 3)
+    # write_csv_data(join_spotify_sql, os.path.join(json_extraction_results, 'join_spotify_sql.csv'), delim='|')
