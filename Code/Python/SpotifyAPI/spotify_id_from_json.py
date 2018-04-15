@@ -11,7 +11,7 @@ start_dir = os.getcwd()
 output_file = os.path.join(json_extraction_results, "spotify_song_info.csv")
 
 # Open list of song IDs
-song_ids = csv_open(os.path.join(sql_results, 'song_ids.csv'))
+song_ids = csv_open(os.path.join(sql_results, 'final_song_selection.csv'))
 
 # Extract song ID strings because the CSV populates a list of lists with a single item in each sublist
 song_ids = [song_id[0] for song_id in song_ids]
