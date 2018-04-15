@@ -74,6 +74,12 @@ FROM top_song_plays;
 SELECT *
 FROM top_5_users;
 
+# Get list of songs listened to by at least 2 of the top 5 users
+SELECT song_id, count(user_id) as users_listened
+FROM top_user_play_records
+GROUP BY song_id
+HAVING users_listened > 1;
+
 # Create unique report for each of the top 5 users to easily
 # import data to python
 
