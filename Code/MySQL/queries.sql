@@ -75,10 +75,11 @@ SELECT *
 FROM top_5_users;
 
 # Get list of songs listened to by at least 2 of the top 5 users
-SELECT song_id, count(user_id) as users_listened
-FROM top_user_play_records
-GROUP BY song_id
-HAVING users_listened > 1;
+CREATE VIEW songs_with_min_users AS
+  SELECT song_id, count(user_id) AS users_listened
+  FROM top_user_play_records
+  GROUP BY song_id
+  HAVING users_listened > 1;
 
 # Create unique report for each of the top 5 users to easily
 # import data to python
@@ -90,22 +91,27 @@ HAVING users_listened > 1;
 #    WHERE user_id = '119b7c88d58d0c6eb051365c103da5caf817bea6') AS max_plays
 # WHERE user_id = '119b7c88d58d0c6eb051365c103da5caf817bea6';
 
-SELECT *
-FROM top_user_play_records
-WHERE user_id = '119b7c88d58d0c6eb051365c103da5caf817bea6';
+SELECT top_user_play_records.*
+FROM top_user_play_records, songs_with_min_users
+WHERE user_id = '119b7c88d58d0c6eb051365c103da5caf817bea6'
+AND songs_with_min_users.song_id = top_user_play_records.song_id;
 
-SELECT *
-FROM top_user_play_records
-WHERE user_id = '3fa44653315697f42410a30cb766a4eb102080bb';
+SELECT top_user_play_records.*
+FROM top_user_play_records, songs_with_min_users
+WHERE user_id = '3fa44653315697f42410a30cb766a4eb102080bb'
+AND songs_with_min_users.song_id = top_user_play_records.song_id;
 
-SELECT *
-FROM top_user_play_records
-WHERE user_id = 'a2679496cd0af9779a92a13ff7c6af5c81ea8c7b';
+SELECT top_user_play_records.*
+FROM top_user_play_records, songs_with_min_users
+WHERE user_id = 'a2679496cd0af9779a92a13ff7c6af5c81ea8c7b'
+AND songs_with_min_users.song_id = top_user_play_records.song_id;
 
-SELECT *
-FROM top_user_play_records
-WHERE user_id = 'd7d2d888ae04d16e994d6964214a1de81392ee04';
+SELECT top_user_play_records.*
+FROM top_user_play_records, songs_with_min_users
+WHERE user_id = 'd7d2d888ae04d16e994d6964214a1de81392ee04'
+AND songs_with_min_users.song_id = top_user_play_records.song_id;
 
-SELECT *
-FROM top_user_play_records
-WHERE user_id = '4ae01afa8f2430ea0704d502bc7b57fb52164882';
+SELECT top_user_play_records.*
+FROM top_user_play_records, songs_with_min_users
+WHERE user_id = '4ae01afa8f2430ea0704d502bc7b57fb52164882'
+AND songs_with_min_users.song_id = top_user_play_records.song_id;
