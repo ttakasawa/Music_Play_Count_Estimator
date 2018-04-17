@@ -122,6 +122,8 @@ def load_music_3D(song_segment_path, t_steps, song_id, segment_start, segment_en
     for segment in range(segment_start, segment_end + 1):
         segment_name = base_string + str(segment) + '.mp3'
         segment_data = load_music_segment(os.path.join(song_segment_path, segment_name), t_steps)
+        if segment_data.shape[0] == 1:
+            segment_data = np.repeat(segment_data, 2, axis=0)
         if segment == segment_start:
             song_data = segment_data
         else:
@@ -162,6 +164,7 @@ def train_2D_model(t_steps, song_id_idx, target_idx, train_data, audio_dir):
     """
     lstm_2D = create_2D_model(t_steps)
     for sample in train_data:
+        print("TRAINING ON SAMPLE: " + sample[song_id_idx])
         target = np.array([sample[target_idx].astype('float64')])
         song_dir = os.path.join(audio_dir, sample[song_id_idx])
         for segment in os.listdir(song_dir):
@@ -185,6 +188,7 @@ def validate_2D_model(trained_model, t_steps, song_id_idx, target_idx, test_data
     error = np.float64(0.0)
     num_segments = 0
     for sample in test_data:
+        print("TESTING ON SAMPLE: " + sample[song_id_idx])
         target = np.array([sample[target_idx].astype('float64')])
         song_dir = os.path.join(audio_dir, sample[song_id_idx])
         for segment in os.listdir(song_dir):
@@ -208,6 +212,7 @@ def train_3D_model(t_steps, song_id_idx, target_idx, train_data, audio_dir):
     """
     lstm_3D = create_3D_model(t_steps, 6)
     for sample in train_data:
+        print("TRAINING ON SAMPLE: " + sample[song_id_idx])
         target = np.array([sample[target_idx].astype('float64')]) * np.ones(6)
         music_data = load_music_3D(os.path.join(audio_dir, sample[song_id_idx]), t_steps, sample[song_id_idx], 5, 10)
         lstm_3D.fit(music_data, target)
@@ -228,6 +233,7 @@ def validate_3D_model(trained_model, t_steps, song_id_idx, target_idx, test_data
     error = np.float64(0.0)
     num_segments = 0
     for sample in test_data:
+        print("TESTING ON SAMPLE: " + sample[song_id_idx])
         target = np.array([sample[target_idx].astype('float64')]) * np.ones(6)
         num_segments += 1
         music_data = load_music_3D(os.path.join(audio_dir, sample[song_id_idx]), t_steps, sample[song_id_idx], 5, 10)
@@ -255,12 +261,12 @@ if __name__ == '__main__':
         train_data, test_data = load_and_preprocess_user_data(user_file, music_dir)
 
         # 2D model
-        trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
-        accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
+        # trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
+        # accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
         
         # 3D model
-        # trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
-        # accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
+        trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
+        accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
 
         # Save model
         model_name = 'user_' + str(user) + '_model'
