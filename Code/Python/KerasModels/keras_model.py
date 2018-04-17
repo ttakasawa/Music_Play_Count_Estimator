@@ -96,6 +96,15 @@ def load_music_segment(music_file_path, t_steps, monophonic=False):
     :return: np array of music data from librosa
     """
     librosa_data, sample_rate = librosa.load(music_file_path, mono=monophonic)
+
+    # Ensure stereo audio clips are ACTUALLY stereo, not mono
+    if not monophonic:
+        if librosa_data.ndim == 1:
+            librosa_data = np.expand_dims(librosa_data, 0)
+        if librosa_data.shape[0] == 1:
+            librosa_data = np.repeat(librosa_data, 2, axis=0)
+
+    # If audio clip is too short, pad zeros
     if librosa_data.ndim == 1:
         if librosa_data.shape[0] < t_steps:
             pad_value = t_steps - librosa_data.shape[0]
@@ -122,10 +131,6 @@ def load_music_3D(song_segment_path, t_steps, song_id, segment_start, segment_en
     for segment in range(segment_start, segment_end + 1):
         segment_name = base_string + str(segment) + '.mp3'
         segment_data = load_music_segment(os.path.join(song_segment_path, segment_name), t_steps)
-        if segment_data.ndim == 1:
-            segment_data = np.expand_dims(segment_data, 0)
-        if segment_data.shape[0] == 1:
-            segment_data = np.repeat(segment_data, 2, axis=0)
         if segment == segment_start:
             song_data = segment_data
         else:
@@ -265,7 +270,7 @@ if __name__ == '__main__':
         # 2D model
         # trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
         # accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
-        
+
         # 3D model
         trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
         accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
