@@ -268,29 +268,37 @@ if __name__ == '__main__':
     music_dir = os.path.join(os.getcwd(), 'split_songs/')
 
     # Run model
-    model_accuracy_file = 'model_accuracies.csv'
-    with open(model_accuracy_file, 'w') as f:
-        writer = csv.writer(f)
-        writer.writerow(['model_name', 'accuracy'])
     for user in range(1, 6):
         user_file = os.path.join(user_data_dir, "user_" + str(user) + ".csv")
         train_data, test_data = load_and_preprocess_user_data(user_file, music_dir)
 
         if sys.argv[1] == '2':
             # 2D model
+            model_accuracy_file = 'model_accuracies_2D.csv'
+            model_name = 'user_' + str(user) + '_2D_model.h5'
+            with open(model_accuracy_file, 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['model_name', 'accuracy'])
+
             print("TRAINING 2D MODEL")
             trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
             accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
 
         else:
             # 3D model
+            model_accuracy_file = 'model_accuracies_3D.csv'
+            model_name = 'user_' + str(user) + '_3D_model.h5'
+            with open(model_accuracy_file, 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['model_name', 'accuracy'])
+
             print("TRAINING 3D MODEL")
             trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
             accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
 
         # Save model
-        model_name = 'user_' + str(user) + '_model'
-        trained_model.save(os.path.join(os.getcwd(), model_name + '.h5'))
+
+        trained_model.save(os.path.join(os.getcwd(), model_name))
         with open(model_accuracy_file, 'a') as f:
             writer = csv.writer(f)
             writer.writerow([model_name, accuracy])
