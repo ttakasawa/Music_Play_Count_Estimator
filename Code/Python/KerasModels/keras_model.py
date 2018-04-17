@@ -1,4 +1,5 @@
 import os
+import sys
 import csv
 import librosa
 import numpy as np
@@ -251,6 +252,14 @@ def validate_3D_model(trained_model, t_steps, song_id_idx, target_idx, test_data
 
 
 if __name__ == '__main__':
+    error_string = "Incorrect usage. \n" \
+                   "Call 'keras_model.py n_dim' where n_dim is 2 for the 2D model or 3 for the 3D model"
+    if len(sys.argv) != 2:
+        print(error_string, file=sys.stderr)
+        exit(-55)
+    elif sys.argv[1] != '2' and sys.argv[1] != '3':
+        print(error_string, file=sys.stderr)
+        exit(-55)
     # Set variables for running model
     time_steps = int(222336 / 2)
     song_index = 0  # Echonest song ID values
@@ -267,13 +276,17 @@ if __name__ == '__main__':
         user_file = os.path.join(user_data_dir, "user_" + str(user) + ".csv")
         train_data, test_data = load_and_preprocess_user_data(user_file, music_dir)
 
-        # 2D model
-        # trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
-        # accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
+        if sys.argv[1] == '2':
+            # 2D model
+            print("TRAINING 2D MODEL")
+            trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
+            accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
 
-        # 3D model
-        trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
-        accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
+        else:
+            # 3D model
+            print("TRAINING 3D MODEL")
+            trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
+            accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
 
         # Save model
         model_name = 'user_' + str(user) + '_model'
