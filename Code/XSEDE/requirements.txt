@@ -1,0 +1,8 @@
+pip
+numpy
+scipy
+sklearn
+tensorflow-gpu
+h5py
+librosa
+pydub
