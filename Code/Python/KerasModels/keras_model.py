@@ -122,6 +122,8 @@ def load_music_3D(song_segment_path, t_steps, song_id, segment_start, segment_en
     for segment in range(segment_start, segment_end + 1):
         segment_name = base_string + str(segment) + '.mp3'
         segment_data = load_music_segment(os.path.join(song_segment_path, segment_name), t_steps)
+        if segment_data.ndim == 1:
+            segment_data = np.expand_dims(segment_data, 0)
         if segment_data.shape[0] == 1:
             segment_data = np.repeat(segment_data, 2, axis=0)
         if segment == segment_start:
