@@ -6,6 +6,9 @@ Data/MySQL/
 Data/millionsongdataset_echonest
 Code/Python/SpotifyAPI/key\.txt
 Code/Python/SpotifyAPI/user_id\.txt
+Code/Python/KerasModels/split_songs
+Code/Python/KerasModels/user_data
+Code/Python/KerasModels/*.csv
 
 ################################################################################################################
 ##  End REPO Gitignore
