@@ -97,38 +97,7 @@ def load_music_segment(music_file_path, t_steps, monophonic=False):
     return librosa_data
 
 
-def load_music_2D(song_segment_path, user_data, song_id_idx, target_idx, segment_len):
-    """
-    Loads music in a (num_segments, 1, len_segments) numpy array and targets to (num_segments, 1)
-    :param song_segment_path: path to segment files
-    :param user_data: preprocessed user data
-    :param song_id_idx: index of song ID in user data
-    :param target_idx: index of target value in user data
-    :param segment_len: length of all segments
-    :return: music and target numpy arrays
-    """
-    target_array = []
-    music_data = False
-    for data in user_data:
-        song_id = data[song_id_idx]
-        song_dir = os.path.join(song_segment_path, song_id)
-        print("LOADING SONG: " + song_id)
-        for segment in sorted(os.listdir(song_dir)):
-            segment_data = load_music_segment(os.path.join(song_dir, segment), segment_len, True)
-            segment_data = np.reshape(segment_data, (1, 1, len(segment_data)))
-
-            # Check if music data has been initialized with NP array
-            if isinstance(music_data, bool):
-                music_data = segment_data
-            else:
-                music_data = np.vstack((music_data, segment_data))
-            target_array.append(data[target_idx])
-    target_array = np.array(target_array)
-    target_array = np.reshape(target_array, (len(target_array), 1))
-    return music_data, target_array
-
-
-def load_music_3D(song_segment_path, user_data, song_id_idx, target_idx, segment_len, time_steps=24):
+def load_music(song_segment_path, user_data, song_id_idx, target_idx, segment_len, time_steps=24):
     """
     Loads music in a (num_songs, num_segments, len_segments) numpy array and targets as (num_songs, 1) NP array
     :param song_segment_path: path to segment files
@@ -144,29 +113,40 @@ def load_music_3D(song_segment_path, user_data, song_id_idx, target_idx, segment
     for data in user_data:
         song_id = data[song_id_idx]
         song_dir = os.path.join(song_segment_path, song_id)
-        target_array.append(data[target_idx])
-        current_segment = 0
-        song_data = False
-
         print("LOADING SONG: " + song_id)
-        for segment in sorted(os.listdir(song_dir)):
-            if current_segment >= time_steps:
-                break
-            segment_data = load_music_segment(os.path.join(song_dir, segment), segment_len, True)
-            segment_data = np.reshape(segment_data, (1, 1, len(segment_data)))
 
-            # Check if song data has been initialized with NP array
-            if isinstance(song_data, bool):
-                song_data = segment_data
+        # Set number of times song should be split
+        segments = sorted(os.listdir(song_dir))
+        num_splits = int(np.floor(len(segments) / time_steps))
+
+        # Iterate over number of splits
+        for i in range(0, num_splits):
+            # Set target
+            target_array.append(data[target_idx])
+            split_data = False
+
+            # Set begin and end of segment splitting
+            first_segment = i * time_steps
+            last_segment = i * time_steps + time_steps
+
+            # Load segments into memory and append to split_data
+            for j in range(first_segment, last_segment):
+                segment_path = os.path.join(song_dir, segments[j])
+                segment_data = load_music_segment(segment_path, segment_len, True)
+                segment_data = np.reshape(segment_data, (1, 1, len(segment_data)))
+
+                # Check if split song data has been initialized with NP array
+                if isinstance(split_data, bool):
+                    split_data = segment_data
+                else:
+                    split_data = np.column_stack((split_data, segment_data))
+            print(split_data.shape)
+            # Check if music data has been initialized with NP array
+            if isinstance(music_data, bool):
+                music_data = split_data
             else:
-                song_data = np.column_stack((song_data, segment_data))
-            current_segment += 1
-
-        # Check if music data has been initialized with NP array
-        if isinstance(music_data, bool):
-            music_data = song_data
-        else:
-            music_data = np.vstack((music_data, song_data))
+                music_data = np.vstack((music_data, split_data))
+            print(music_data.shape)
     return music_data, np.array(target_array)
 
 
@@ -183,9 +163,9 @@ def train_model(lstm_neurons, music_data, targets):
 if __name__ == '__main__':
     error_string = "===============================================================================================\n" \
                    "INCORRECT CALL: Missing Arguments\n" \
-                   "Call format should be: keras_models.py [1/2] [T/F]\n" \
+                   "Call format should be: keras_models.py [1/2] [1-26]\n" \
                    "Argument 1: 1 or 2 layer LSTM network\n" \
-                   "Argument 2: Use multiple timesteps or not\n" \
+                   "Argument 2: Number of time steps per sample to use.\n" \
                    "===============================================================================================\n"
     if len(sys.argv) != 3:
         print(error_string, file=sys.stderr)
@@ -193,7 +173,7 @@ if __name__ == '__main__':
     elif sys.argv[1] != '1' and sys.argv[1] != '2':
         print(error_string, file=sys.stderr)
         exit(-55)
-    elif sys.argv[2] != 'T' and sys.argv[2] != 'F':
+    elif int(sys.argv[2]) < 1 or int(sys.argv[2]) > 26:
         print(error_string, file=sys.stderr)
         exit(-55)
 
@@ -213,16 +193,11 @@ if __name__ == '__main__':
         targets = []
         model_accuracy_file = 'model_accuracies'
         model_name = 'user_' + str(user)
-        if sys.argv[2] == 'T':
-            print("USING 24 TIME STEP MODEL")
-            model_accuracy_file = model_accuracy_file + "_24-Steps"
-            model_name = model_name + "_24-Steps"
-            music, targets = load_music_3D(music_dir, user_data, song_index, target_index, segment_length)
-        else:
-            print("USING SINGLE TIME STEP MODEL")
-            model_accuracy_file = model_accuracy_file + "_Single-Step"
-            model_name = model_name + "_Single-Step"
-            music, targets = load_music_2D(music_dir, user_data, song_index, target_index, segment_length)
+
+        print("USING " + sys.argv[2] + " TIME STEP MODEL")
+        model_accuracy_file = model_accuracy_file + "_" + sys.argv[2] + "-Steps"
+        model_name = model_name + "_" + sys.argv[2] + "-Steps"
+        music, targets = load_music(music_dir, user_data, song_index, target_index, segment_length, int(sys.argv[2]))
         if sys.argv[1] == '2':
             # 2 Layer LSTM model
             model_accuracy_file = model_accuracy_file + '_2-Layer.csv'
@@ -243,10 +218,10 @@ if __name__ == '__main__':
 
             print("TRAINING 1 LAYER MODEL")
             trained_model = train_model(100, music, targets)
-        #
-        # # Save model
-        #
-        # trained_model.save(os.path.join(os.getcwd(), model_name))
-        # with open(model_accuracy_file, 'a') as f:
-        #     writer = csv.writer(f)
-        #     writer.writerow([model_name, accuracy])
+
+        # Save model
+
+        trained_model.save(os.path.join(os.getcwd(), model_name))
+        with open(model_accuracy_file, 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow([model_name, accuracy])
