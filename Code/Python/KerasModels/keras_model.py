@@ -8,43 +8,28 @@ from keras.layers import LSTM, Dense
 from keras.models import Sequential
 
 
-def create_1D_model(time_steps):
+def create_1L_LSTM_model(hidden_neurons, data):
     """
-    Mono input signal, 5 seconds long: 1 clip x time_steps x 1 channel
-    :param time_steps: length of each song segments
+    Mono input signal, 5 seconds long: n clips x time_steps x clip_length
+    :param hidden_neurons: number of hidden neurons in LSTM layer
     :return: 1D LSTM model
     """
     model = Sequential()
-    model.add(LSTM(1, input_shape=(time_steps, 1)))
+    model.add(LSTM(hidden_neurons, input_shape=(data.shape[1:])))
     model.add(Dense(1, activation='linear'))
     model.compile(optimizer='rmsprop', loss='mse')
     return model
 
 
-def create_2D_model(time_steps):
+def create_2L_LSTM_model(hidden_neurons, data):
     """
-    Stereo input signal, 5 seconds long: 1 clip x time_steps x 2 channels
-    :param time_steps: length of each song segments
-    :return: 2D LSTM model
+    Mono input signal, 5 seconds long: n clips x time_steps x clip_length
+    :param hidden_neurons: number of hidden neurons in LSTM layer
+    :return: 1D LSTM model
     """
-    # Stereo input signal, 5 seconds long: 1 clip x time_steps x 2 channels
     model = Sequential()
-    model.add(LSTM(1, input_shape=(time_steps, 2)))
-    model.add(Dense(1, activation='linear'))
-    model.compile(optimizer='rmsprop', loss='mse')
-    return model
-
-
-def create_3D_model(time_steps, number_segments):
-    """
-    6 stereo input signals, each 5 seconds long: 6 clips x time_steps x 2 channels
-    :param time_steps: length of each song segments
-    :param number_segments: number of each song segments for each clip
-    :return: 3D LSTM model
-    """
-
-    model = Sequential()
-    model.add(LSTM(number_segments, input_shape=(time_steps, 2)))
+    model.add(LSTM(hidden_neurons, return_sequences=True, input_shape=(data.shape[1:])))
+    model.add(LSTM(hidden_neurons))
     model.add(Dense(1, activation='linear'))
     model.compile(optimizer='rmsprop', loss='mse')
     return model
@@ -79,13 +64,8 @@ def load_and_preprocess_user_data(user_data_file_path, audio_file_path):
 
     # Reassemble into matrix
     processed_data = np.column_stack((song_ids, plays, plays_norm, plays_std))
-
-    # Split data into training and test sets
     np.random.shuffle(processed_data)
-    num_train = np.floor(processed_data.shape[0] * 0.8).astype(int)
-
-    # Return train and test sets
-    return processed_data[0:num_train, ], processed_data[num_train:, ]
+    return processed_data
 
 
 def load_music_segment(music_file_path, t_steps, monophonic=False):
@@ -117,188 +97,156 @@ def load_music_segment(music_file_path, t_steps, monophonic=False):
     return librosa_data
 
 
-def load_music_3D(song_segment_path, t_steps, song_id, segment_start, segment_end):
+def load_music_2D(song_segment_path, user_data, song_id_idx, target_idx, segment_len):
     """
-    Given a start segment and end segment, creates a matrix that's: num_segments x segment length x 2 channels
-    :param song_segment_path: path to song segments
-    :param t_steps: number of time steps numpy array should be
-    :param song_id: Echonest ID of song
-    :param segment_start: first segment to load
-    :param segment_end: last segment to load
-    :return: matrix of audio clip data
+    Loads music in a (num_segments, 1, len_segments) numpy array and targets to (num_segments, 1)
+    :param song_segment_path: path to segment files
+    :param user_data: preprocessed user data
+    :param song_id_idx: index of song ID in user data
+    :param target_idx: index of target value in user data
+    :param segment_len: length of all segments
+    :return: music and target numpy arrays
     """
-    base_string = song_id + '_part_'
-    song_data = []
-    for segment in range(segment_start, segment_end + 1):
-        segment_name = base_string + str(segment) + '.mp3'
-        segment_data = load_music_segment(os.path.join(song_segment_path, segment_name), t_steps)
-        if segment == segment_start:
-            song_data = segment_data
+    target_array = []
+    music_data = False
+    for data in user_data:
+        song_id = data[song_id_idx]
+        song_dir = os.path.join(song_segment_path, song_id)
+        print("LOADING SONG: " + song_id)
+        for segment in sorted(os.listdir(song_dir)):
+            segment_data = load_music_segment(os.path.join(song_dir, segment), segment_len, True)
+            segment_data = np.reshape(segment_data, (1, 1, len(segment_data)))
+
+            # Check if music data has been initialized with NP array
+            if isinstance(music_data, bool):
+                music_data = segment_data
+            else:
+                music_data = np.vstack((music_data, segment_data))
+            target_array.append(data[target_idx])
+    target_array = np.array(target_array)
+    target_array = np.reshape(target_array, (len(target_array), 1))
+    return music_data, target_array
+
+
+def load_music_3D(song_segment_path, user_data, song_id_idx, target_idx, segment_len, time_steps=24):
+    """
+    Loads music in a (num_songs, num_segments, len_segments) numpy array and targets as (num_songs, 1) NP array
+    :param song_segment_path: path to segment files
+    :param user_data: preprocessed user data
+    :param song_id_idx: index of song ID in user data
+    :param target_idx: index of target value in user data
+    :param segment_len: length of all segments
+    :param time_steps: number of segments to load per song
+    :return: music and target numpy arrays
+    """
+    target_array = []
+    music_data = False
+    for data in user_data:
+        song_id = data[song_id_idx]
+        song_dir = os.path.join(song_segment_path, song_id)
+        target_array.append(data[target_idx])
+        current_segment = 0
+        song_data = False
+
+        print("LOADING SONG: " + song_id)
+        for segment in sorted(os.listdir(song_dir)):
+            if current_segment >= time_steps:
+                break
+            segment_data = load_music_segment(os.path.join(song_dir, segment), segment_len, True)
+            segment_data = np.reshape(segment_data, (1, 1, len(segment_data)))
+
+            # Check if song data has been initialized with NP array
+            if isinstance(song_data, bool):
+                song_data = segment_data
+            else:
+                song_data = np.column_stack((song_data, segment_data))
+            current_segment += 1
+
+        # Check if music data has been initialized with NP array
+        if isinstance(music_data, bool):
+            music_data = song_data
         else:
-            song_data = np.dstack((song_data, segment_data))
-    return song_data.T
+            music_data = np.vstack((music_data, song_data))
+    return music_data, np.array(target_array)
 
 
-def transform_1D_data(data):
-    """
-    Transforms the 1D mono data into an acceptable dimensionality for keras
-    :param data: 1D numpy array
-    :return: 3D numpy array of 1, time_steps, 1
-    """
-    data_1D = np.expand_dims(data, 0)
-    data_1D = np.expand_dims(data_1D, 2)
-    return data_1D
-
-
-def transform_2D_data(data):
-    """
-    Transforms the 2D stereo data into an acceptable dimensionality for keras
-    :param data: 2D numpy array
-    :return: 3D numpy array of 1, time_steps, 2
-    """
-    data_2D = np.expand_dims(data.T, 0)
-    return data_2D
-
-
-def train_2D_model(t_steps, song_id_idx, target_idx, train_data, audio_dir):
-    """
-    Trains a 2-Dimensional, single layer LSTM model using keras
-    :param t_steps: number of time steps for each audio segment
-    :param song_id_idx: index location of song IDs in user data
-    :param target_idx: index location of target values in user data
-    :param train_data: array of user data to use as training data
-    :param audio_dir: directory that audio files are located
-    :return: trained 2D model
-    """
-    lstm_2D = create_2D_model(t_steps)
-    for sample in train_data:
-        print("TRAINING ON SAMPLE: " + sample[song_id_idx])
-        target = np.array([sample[target_idx].astype('float64')])
-        song_dir = os.path.join(audio_dir, sample[song_id_idx])
-        for segment in os.listdir(song_dir):
-            music_data = load_music_segment(os.path.join(song_dir, segment), t_steps)
-            music_data = transform_2D_data(music_data)
-            lstm_2D.fit(music_data, target)
-    return lstm_2D
-
-
-def validate_2D_model(trained_model, t_steps, song_id_idx, target_idx, test_data, audio_dir):
-    """
-    Performs MSE accuracy testing on a trained 2D LSTM model
-    :param trained_model: reference to trained keras model object
-    :param t_steps: number of time steps each audio segment should be
-    :param song_id_idx: index location of song IDs in user data
-    :param target_idx: index location of target values in user data
-    :param test_data: array of user data to use as testing data
-    :param audio_dir: directory that audio files are located
-    :return: mean squared error for predictions
-    """
-    error = np.float64(0.0)
-    num_segments = 0
-    for sample in test_data:
-        print("TESTING ON SAMPLE: " + sample[song_id_idx])
-        target = np.array([sample[target_idx].astype('float64')])
-        song_dir = os.path.join(audio_dir, sample[song_id_idx])
-        for segment in os.listdir(song_dir):
-            num_segments += 1
-            music_data = load_music_segment(os.path.join(song_dir, segment), t_steps)
-            music_data = transform_2D_data(music_data)
-            prediction = trained_model.predict(music_data)
-            error += np.square(target - prediction)
-    return error / num_segments
-
-
-def train_3D_model(t_steps, song_id_idx, target_idx, train_data, audio_dir):
-    """
-    Trains a 3-Dimensional, single layer LSTM model using keras with a total of 30 seconds of audio per training step
-    :param t_steps: number of time steps for each audio segment
-    :param song_id_idx: index location of song IDs in user data
-    :param target_idx: index location of target values in user data
-    :param train_data: array of user data to use as training data
-    :param audio_dir: directory that audio files are located
-    :return: trained 3D model
-    """
-    lstm_3D = create_3D_model(t_steps, 6)
-    for sample in train_data:
-        print("TRAINING ON SAMPLE: " + sample[song_id_idx])
-        target = np.array([sample[target_idx].astype('float64')]) * np.ones(6)
-        music_data = load_music_3D(os.path.join(audio_dir, sample[song_id_idx]), t_steps, sample[song_id_idx], 5, 10)
-        lstm_3D.fit(music_data, target)
-    return lstm_3D
-
-
-def validate_3D_model(trained_model, t_steps, song_id_idx, target_idx, test_data, audio_dir):
-    """
-    Performs MSE accuracy testing on a trained 2D LSTM model
-    :param trained_model: reference to trained keras model object
-    :param t_steps: number of time steps each audio segment should be
-    :param song_id_idx: index location of song IDs in user data
-    :param target_idx: index location of target values in user data
-    :param test_data: array of user data to use as testing data
-    :param audio_dir: directory that audio files are located
-    :return: mean squared error for predictions
-    """
-    error = np.float64(0.0)
-    num_segments = 0
-    for sample in test_data:
-        print("TESTING ON SAMPLE: " + sample[song_id_idx])
-        target = np.array([sample[target_idx].astype('float64')]) * np.ones(6)
-        num_segments += 1
-        music_data = load_music_3D(os.path.join(audio_dir, sample[song_id_idx]), t_steps, sample[song_id_idx], 5, 10)
-        prediction = trained_model.predict(music_data)
-        error_vector = np.square(target - prediction)
-        error += error_vector.sum()
-    return error / num_segments
+def train_model(lstm_neurons, music_data, targets):
+    # Create Model
+    if sys.argv[1] == '2':
+        model = create_2L_LSTM_model(lstm_neurons, music_data)
+    else:
+        model = create_1L_LSTM_model(lstm_neurons, music_data)
+    model.fit(music_data, targets, validation_split=0.1, shuffle=True, epochs=100)
+    return model
 
 
 if __name__ == '__main__':
-    error_string = "Incorrect usage. \n" \
-                   "Call 'keras_model.py n_dim' where n_dim is 2 for the 2D model or 3 for the 3D model"
-    if len(sys.argv) != 2:
+    error_string = "===============================================================================================\n" \
+                   "INCORRECT CALL: Missing Arguments\n" \
+                   "Call format should be: keras_models.py [1/2] [T/F]\n" \
+                   "Argument 1: 1 or 2 layer LSTM network\n" \
+                   "Argument 2: Use multiple timesteps or not\n" \
+                   "===============================================================================================\n"
+    if len(sys.argv) != 3:
         print(error_string, file=sys.stderr)
         exit(-55)
-    elif sys.argv[1] != '2' and sys.argv[1] != '3':
+    elif sys.argv[1] != '1' and sys.argv[1] != '2':
         print(error_string, file=sys.stderr)
         exit(-55)
+    elif sys.argv[2] != 'T' and sys.argv[2] != 'F':
+        print(error_string, file=sys.stderr)
+        exit(-55)
+
     # Set variables for running model
-    time_steps = int(222336 / 2)
+    segment_length = int(222336 / 2)
     song_index = 0  # Echonest song ID values
     target_index = 3  # Standardized values
     user_data_dir = os.path.join(os.getcwd(), 'user_data/')
     music_dir = os.path.join(os.getcwd(), 'split_songs/')
 
     # Run model
-    for user in range(1, 6):
+    for user in range(2, 3):
+        print("TRAINING ON USER: " + str(user))
         user_file = os.path.join(user_data_dir, "user_" + str(user) + ".csv")
-        train_data, test_data = load_and_preprocess_user_data(user_file, music_dir)
-
-        if sys.argv[1] == '2':
-            # 2D model
-            model_accuracy_file = 'model_accuracies_2D.csv'
-            model_name = 'user_' + str(user) + '_2D_model.h5'
-            with open(model_accuracy_file, 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(['model_name', 'accuracy'])
-
-            print("TRAINING 2D MODEL")
-            trained_model = train_2D_model(time_steps, song_index, target_index, train_data, music_dir)
-            accuracy = validate_2D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
-
+        user_data = load_and_preprocess_user_data(user_file, music_dir)
+        music = []
+        targets = []
+        model_accuracy_file = 'model_accuracies'
+        model_name = 'user_' + str(user)
+        if sys.argv[2] == 'T':
+            print("USING 24 TIME STEP MODEL")
+            model_accuracy_file = model_accuracy_file + "_24-Steps"
+            model_name = model_name + "_24-Steps"
+            music, targets = load_music_3D(music_dir, user_data, song_index, target_index, segment_length)
         else:
-            # 3D model
-            model_accuracy_file = 'model_accuracies_3D.csv'
-            model_name = 'user_' + str(user) + '_3D_model.h5'
+            print("USING SINGLE TIME STEP MODEL")
+            model_accuracy_file = model_accuracy_file + "_Single-Step"
+            model_name = model_name + "_Single-Step"
+            music, targets = load_music_2D(music_dir, user_data, song_index, target_index, segment_length)
+        if sys.argv[1] == '2':
+            # 2 Layer LSTM model
+            model_accuracy_file = model_accuracy_file + '_2-Layer.csv'
+            model_name = model_name + "_2-Layer.h5"
             with open(model_accuracy_file, 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(['model_name', 'accuracy'])
 
-            print("TRAINING 3D MODEL")
-            trained_model = train_3D_model(time_steps, song_index, target_index, train_data, music_dir)
-            accuracy = validate_3D_model(trained_model, time_steps, song_index, target_index, test_data, music_dir)
+            print("TRAINING 2 LAYER MODEL")
+            trained_model = train_model(100, music, targets)
+        else:
+            # 1 Layer LSTM model
+            model_accuracy_file = model_accuracy_file + '_1-Layer.csv'
+            model_name = model_name + "_1-Layer.h5"
+            with open(model_accuracy_file, 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['model_name', 'accuracy'])
 
-        # Save model
-
-        trained_model.save(os.path.join(os.getcwd(), model_name))
-        with open(model_accuracy_file, 'a') as f:
-            writer = csv.writer(f)
-            writer.writerow([model_name, accuracy])
+            print("TRAINING 1 LAYER MODEL")
+            trained_model = train_model(100, music, targets)
+        #
+        # # Save model
+        #
+        # trained_model.save(os.path.join(os.getcwd(), model_name))
+        # with open(model_accuracy_file, 'a') as f:
+        #     writer = csv.writer(f)
+        #     writer.writerow([model_name, accuracy])

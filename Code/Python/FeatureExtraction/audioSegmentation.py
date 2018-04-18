@@ -69,7 +69,7 @@ def SaveAudio(name, audio_segment_data, current_segment, segment_path):
         True if save was successful, false otherwise
     """
 
-    rel_path = name + '_part_' + str(current_segment) + '.mp3'
+    rel_path = name + '_part_' + str(current_segment).zfill(3) + '.mp3'
     output_path = os.path.join(segment_path, rel_path)
     if audio_segment_data.export(output_path, format="mp3"):
         return output_path
