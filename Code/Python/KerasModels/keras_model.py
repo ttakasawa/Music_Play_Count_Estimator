@@ -205,7 +205,7 @@ if __name__ == '__main__':
     music_dir = os.path.join(os.getcwd(), 'split_songs/')
 
     # Run model
-    for user in range(2, 3):
+    for user in range(1, 6):
         print("TRAINING ON USER: " + str(user))
         user_file = os.path.join(user_data_dir, "user_" + str(user) + ".csv")
         user_data = load_and_preprocess_user_data(user_file, music_dir)
