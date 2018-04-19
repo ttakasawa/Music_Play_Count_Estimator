@@ -157,8 +157,8 @@ def train_model(lstm_neurons, music_data, targets):
     print(model.summary())
     print("MODEL INPUT SHAPE: ", end='')
     print(music_data.shape)
-    model.fit(music_data, targets, validation_split=0.1, shuffle=True, epochs=100)
-    return model
+    train_history = model.fit(music_data, targets, validation_split=0.1, shuffle=True, epochs=100)
+    return model, train_history
 
 
 if __name__ == '__main__':
@@ -195,7 +195,7 @@ if __name__ == '__main__':
         model_accuracy_file = 'model_accuracies'
         model_name = 'user_' + str(user)
 
-        print("USING " +sys.argv[1] + " LAYER WITH " + sys.argv[2] + " TIME STEP MODEL")
+        print("USING " + sys.argv[1] + " LAYER WITH " + sys.argv[2] + " TIME STEP MODEL")
         model_accuracy_file = model_accuracy_file + "_" + sys.argv[2] + "-Steps"
         model_name = model_name + "_" + sys.argv[2] + "-Steps"
         music, targets = load_music(music_dir, user_data, song_index, target_index, segment_length, int(sys.argv[2]))
@@ -208,7 +208,7 @@ if __name__ == '__main__':
                 writer.writerow(['model_name', 'accuracy'])
 
             print("TRAINING 2 LAYER MODEL")
-            trained_model = train_model(100, music, targets)
+            trained_model, train_hist = train_model(100, music, targets)
         else:
             # 1 Layer LSTM model
             model_accuracy_file = model_accuracy_file + '_1-Layer.csv'
@@ -218,11 +218,12 @@ if __name__ == '__main__':
                 writer.writerow(['model_name', 'accuracy'])
 
             print("TRAINING 1 LAYER MODEL")
-            trained_model = train_model(100, music, targets)
+            trained_model, train_hist = train_model(100, music, targets)
 
         # Save model
 
         trained_model.save(os.path.join(os.getcwd(), model_name))
+        accuracy = train_hist.history['val_loss'][-1]
         with open(model_accuracy_file, 'a') as f:
             writer = csv.writer(f)
             writer.writerow([model_name, accuracy])
