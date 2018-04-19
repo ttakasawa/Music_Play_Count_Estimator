@@ -114,7 +114,7 @@ def load_music(song_segment_path, user_data, song_id_idx, target_idx, segment_le
         song_id = data[song_id_idx]
         song_dir = os.path.join(song_segment_path, song_id)
         print("LOADING SONG: " + song_id)
-
+        sys.stdout.flush()
         # Set number of times song should be split
         segments = sorted(os.listdir(song_dir))
         num_splits = int(np.floor(len(segments) / time_steps))
@@ -157,6 +157,7 @@ def train_model(lstm_neurons, music_data, targets):
     print(model.summary())
     print("MODEL INPUT SHAPE: ", end='')
     print(music_data.shape)
+    sys.stdout.flush()
     train_history = model.fit(music_data, targets, validation_split=0.1, shuffle=True, epochs=100)
     return model, train_history
 
@@ -188,6 +189,7 @@ if __name__ == '__main__':
     # Run model
     for user in range(1, 6):
         print("TRAINING ON USER: " + str(user))
+        sys.stdout.flush()
         user_file = os.path.join(user_data_dir, "user_" + str(user) + ".csv")
         user_data = load_and_preprocess_user_data(user_file, music_dir)
         music = []
@@ -196,6 +198,7 @@ if __name__ == '__main__':
         model_name = 'user_' + str(user)
 
         print("USING " + sys.argv[1] + " LAYER WITH " + sys.argv[2] + " TIME STEP MODEL")
+        sys.stdout.flush()
         model_accuracy_file = model_accuracy_file + "_" + sys.argv[2] + "-Steps"
         model_name = model_name + "_" + sys.argv[2] + "-Steps"
         music, targets = load_music(music_dir, user_data, song_index, target_index, segment_length, int(sys.argv[2]))
@@ -208,6 +211,7 @@ if __name__ == '__main__':
                 writer.writerow(['model_name', 'accuracy'])
 
             print("TRAINING 2 LAYER MODEL")
+            sys.stdout.flush()
             trained_model, train_hist = train_model(100, music, targets)
         else:
             # 1 Layer LSTM model
@@ -218,6 +222,7 @@ if __name__ == '__main__':
                 writer.writerow(['model_name', 'accuracy'])
 
             print("TRAINING 1 LAYER MODEL")
+            sys.stdout.flush()
             trained_model, train_hist = train_model(100, music, targets)
 
         # Save model
