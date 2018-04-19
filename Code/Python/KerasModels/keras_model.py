@@ -140,13 +140,11 @@ def load_music(song_segment_path, user_data, song_id_idx, target_idx, segment_le
                     split_data = segment_data
                 else:
                     split_data = np.column_stack((split_data, segment_data))
-            print(split_data.shape)
             # Check if music data has been initialized with NP array
             if isinstance(music_data, bool):
                 music_data = split_data
             else:
                 music_data = np.vstack((music_data, split_data))
-            print(music_data.shape)
     return music_data, np.array(target_array)
 
 
@@ -156,6 +154,9 @@ def train_model(lstm_neurons, music_data, targets):
         model = create_2L_LSTM_model(lstm_neurons, music_data)
     else:
         model = create_1L_LSTM_model(lstm_neurons, music_data)
+    print(model.summary())
+    print("MODEL INPUT SHAPE: ", end='')
+    print(music_data.shape)
     model.fit(music_data, targets, validation_split=0.1, shuffle=True, epochs=100)
     return model
 
