@@ -223,7 +223,8 @@ if __name__ == '__main__':
         # Save model
 
         trained_model.save(os.path.join(os.getcwd(), model_name))
-        accuracy = train_hist.history['val_loss'][-1]
+        accuracy = train_hist.history['val_loss']
+        accuracy.insert(0, model_name)
         with open(model_accuracy_file, 'a') as f:
             writer = csv.writer(f)
-            writer.writerow([model_name, accuracy])
+            writer.writerow(accuracy)
