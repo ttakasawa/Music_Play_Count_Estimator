@@ -195,7 +195,7 @@ if __name__ == '__main__':
         model_accuracy_file = 'model_accuracies'
         model_name = 'user_' + str(user)
 
-        print("USING " +sys.argv[1] + " LAYER WITH" + sys.argv[2] + " TIME STEP MODEL")
+        print("USING " +sys.argv[1] + " LAYER WITH " + sys.argv[2] + " TIME STEP MODEL")
         model_accuracy_file = model_accuracy_file + "_" + sys.argv[2] + "-Steps"
         model_name = model_name + "_" + sys.argv[2] + "-Steps"
         music, targets = load_music(music_dir, user_data, song_index, target_index, segment_length, int(sys.argv[2]))
