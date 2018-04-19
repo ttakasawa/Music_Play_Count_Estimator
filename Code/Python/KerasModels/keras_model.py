@@ -206,9 +206,10 @@ if __name__ == '__main__':
             # 2 Layer LSTM model
             model_accuracy_file = model_accuracy_file + '_2-Layer.csv'
             model_name = model_name + "_2-Layer.h5"
-            with open(model_accuracy_file, 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(['model_name', 'accuracy'])
+            if not os.path.isfile(os.path.join(model_accuracy_file)):
+                with open(model_accuracy_file, 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['model_name', 'accuracy'])
 
             print("TRAINING 2 LAYER MODEL")
             sys.stdout.flush()
@@ -217,9 +218,10 @@ if __name__ == '__main__':
             # 1 Layer LSTM model
             model_accuracy_file = model_accuracy_file + '_1-Layer.csv'
             model_name = model_name + "_1-Layer.h5"
-            with open(model_accuracy_file, 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(['model_name', 'accuracy'])
+            if not os.path.isfile(os.path.join(model_accuracy_file)):
+                with open(model_accuracy_file, 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['model_name', 'accuracy'])
 
             print("TRAINING 1 LAYER MODEL")
             sys.stdout.flush()
