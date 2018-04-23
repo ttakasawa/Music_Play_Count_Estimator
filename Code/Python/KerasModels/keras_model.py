@@ -34,6 +34,27 @@ def create_2L_LSTM_model(hidden_neurons, data):
     model.compile(optimizer='rmsprop', loss='mse')
     return model
 
+def create_deep_LSTM_model(hidden_neurons, data):
+    """
+    Mono input signal, 5 seconds long: n clips x time_steps x clip_length
+    :param hidden_neurons: number of hidden neurons in LSTM layer
+    :return: 1D LSTM model
+    """
+    model = Sequential()
+    model.add(LSTM(hidden_neurons, return_sequences=True, input_shape=(data.shape[1:])))
+    hidden_neurons >>= 1
+    model.add(LSTM(hidden_neurons, return_sequences=True))
+    hidden_neurons >>= 1
+    model.add(LSTM(hidden_neurons, return_sequences=True))
+    hidden_neurons >>= 1
+    model.add(LSTM(hidden_neurons, return_sequences=True))
+    model.add(Dense(hidden_neurons, activation='sigmoid'))
+    hidden_neurons >>= 1
+    model.add(Dense(hidden_neurons, activation='sigmoid'))
+    model.add(Dense(1, activation='sigmoid'))
+    model.compile(optimizer='rmsprop', loss='mse')
+    return model
+
 
 def load_and_preprocess_user_data(user_data_file_path, audio_file_path):
     """
