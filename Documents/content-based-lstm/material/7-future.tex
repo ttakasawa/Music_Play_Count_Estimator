@@ -1,0 +1,19 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% FUTURE WORK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{FUTURE WORK}
+The following suggestions for improvement of the developed system could prove to be fruitful paths to take.
+\begin{itemize}
+	\item Attempting to use a deeper or varied network:
+		\begin{itemize}
+			\item Adding more LSTM Layers
+            \item Adding more LSTM layers with the number of hidden neurons cascading
+            \item Using more fully connected layers with a slower reduction to one output neuron
+            \item Allowing dropout internally in the LSTM layers or in the dense layers
+            \item Using an autoencoder to preprocess audio data before feeding into the LSTM network.
+		\end{itemize}
+	\item Increasing the amount of data for training the networks
+    \item Using different loss functions than MSE
+    \item Using different activation functions other than sigmoid in the neural network
+    \item Use only a single time step with multiple networks and averaging the result of all networks
+\end{itemize}
